@@ -1,34 +1,57 @@
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
+[data-dgtabs] {
+    font-family: "lucida grande", sans-serif;
 }
-[data-dgaccordion] [data-dgaccordion-trigger] {
-    background: transparent;
+
+[data-dgtabs] [role="tablist"] {
+    min-width: 100%;
+    border-bottom: 1px solid lightgray;
+}
+
+[data-dgtabs] [role="tab"],
+[data-dgtabs] [role="tab"]:focus,
+[data-dgtabs] [role="tab"]:hover {
+    margin-bottom: -1px;
     border: none;
+    border-bottom: 1px solid transparent;
+    background: transparent;
+    outline: none;
     cursor: pointer;
+    transition: border-color 0.3s;
+}
+
+[data-dgtabs] [role="tab"][aria-selected="true"] {
+    border-color: black; 
+}
+
+[data-dgtabs] [role="tab"] span.focus {
+    display: inline-block;
+    margin: 2px;
+    padding: 4px 6px;
+}
+
+[data-dgtabs] [role="tab"]:focus-visible span {
+    padding: 2px 4px;
+    border: 2px solid rgb(36 116 214);
+    border-radius: 3px;
+}
+
+[data-dgtabs] [role="tabpanel"] {
+    min-height: 10em;
     width: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-[data-dgaccordion] [data-dgaccordion-trigger] .accordion_icon path {
-    transition: d 0.3s ease;
+    overflow: auto;
+    display: none;
+    opacity: 0;
 }
 
-[data-dgaccordion] [data-dgaccordion-trigger][aria-expanded="true"] .accordion_icon path {
-    d: path("M3,7 L7,3 L11,7");
-}
-[data-dgaccordion] [data-dgaccordion-panel] {
-    display: grid; 
-    grid-template-rows: 0fr;
-    transition: 0.3s grid-template-rows;
+[data-dgtabs] [role="tabpanel"][aria-hidden="false"] {
+    display: block;
+    opacity: 1;
+    transition: opacity 0.3s;
 }
 
-[data-dgaccordion] [data-dgaccordion-panel][aria-hidden="false"] {
-    grid-template-rows: 1fr;
+@starting-style {
+    [data-dgtabs] [role="tabpanel"][aria-hidden="false"] {
+        opacity: 0;
+    }
 }
-[data-dgaccordion] [data-dgaccordion-panel] > :first-child {
-    padding-inline: 1rem;
-    overflow: hidden;
-}
+

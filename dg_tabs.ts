@@ -1,105 +1,126 @@
 /**
- * @class DG_Accordion
- * @description Accordion plugin, nothing fancy.
+ * @class DG_Tabs
+ * @description Basic, but ADA friendly tabs.
  * @author Keith Spang
  * @version 1.0.0
  */
 
-interface AccordionOptions {
-  el: HTMLElement | null;
-  open_multiple?: boolean;
-}
+class DG_Tabs {
 
-interface AccordionItem {
-  button: HTMLButtonElement;
-  content: HTMLElement;
-  open: boolean;
-  toggle: (open: boolean) => void;
-}
+    private tab_list: HTMLElement;
+    private tabs: HTMLElement[];
+    private firstTab: HTMLElement;
+    private lastTab: HTMLElement;
+    private tab_panels: HTMLElement[];
 
-class DG_Accordion {
-  private defaults: AccordionOptions = {
-    el: null,
-    open_multiple: false,
-  };
-  private options: AccordionOptions;
-  private accourdion_items: AccordionItem[] = [];
-  private buttons: NodeListOf<Element>;
+    constructor(tab_list: HTMLElement) {
+        this.tab_list = tab_list;
+        this.tabs = [];
+        this.first_tab = null;
+        this.last_tab = null;
+        this.tabs = Array.from(this.tab_list.querySelectorAll('[role=tab]'));
+        this.tab_panels = [];
 
-  constructor(args: AccordionOptions) {
-    this.options = { ...this.defaults, ...args };
+        for (var i = 0; i < this.tabs.length; i += 1) {
+            const tab: HTMLElement = this.tabs[i];
+            const tabpanel = document.getElementById(tab.getAttribute('aria-controls'));
 
-    if (!this.options.el) {
-      console.error("DG_Accordion: 'el' option is required and must be an HTMLElement.");
-      return;
-    }
+            tab.tabIndex = -1;
+            tab.setAttribute('aria-selected', 'false');
+            this.tab_panels.push(tabpanel);
 
-    this.buttons = this.options.el.querySelectorAll('[data-dgaccordion-trigger]');
+            tab.addEventListener('keydown', this.keydown.bind(this));
+            tab.addEventListener('click', this.click.bind(this));
 
-    for (let i = 0; i < this.buttons.length; i++) {
-      const button = this.buttons[i] as HTMLButtonElement;
-      const content_id = button.getAttribute('aria-controls');
-      
-      if (!content_id) {
-        console.warn(`DG_Accordion: Button with id "${button.id}" is missing 'aria-controls' attribute.`);
-        continue;
-      }
-
-      const content = document.getElementById(content_id);
-      
-      if (!content) {
-        console.warn(`DG_Accordion: No content found for button with id "${button.id}" and aria-controls="${content_id}".`);
-        continue;
-      }
-
-      // check if content is already open
-      const open = button.getAttribute('aria-expanded') === 'true';
-
-      // create accordion item
-      const item: AccordionItem = {
-        button: button,
-        content: content,
-        open: open,
-        toggle: function(open: boolean) {
-          if (open === this.open) return;
-          this.open = open;
-
-          // update button state
-          this.button.setAttribute('aria-expanded', `${open}`);
-          // update content visibility
-          if (open) {
-            this.content.setAttribute('aria-hidden', 'false');
-          } else {
-            this.content.setAttribute('aria-hidden', 'true');
-          }
+            if (!this.first_tab) {
+                this.first_tab = tab;
+            }
+            this.last_tab = tab;
         }
-      };
-      this.accourdion_items.push(item);
+
+        this.set_tab(this.first_tab, false);
     }
 
-    this.init();
-  }
-
-  private close_all(): void {
-    for (let i = 0; i < this.accourdion_items.length; i++) {
-      const item = this.accourdion_items[i];
-      if (item.open) {
-        item.toggle(false);
-      }
-    }
-  }
-
-  private init(): void {
-    // add event listeners
-    for (let i = 0; i < this.accourdion_items.length; i++) {
-      const item = this.accourdion_items[i];
-      item.button.addEventListener('click', () => {
-        if (!this.options.open_multiple) {
-          this.close_all();
+    private set_tab(current_tab: HTMLElement, set_focus?: boolean = true): void {
+        for (var i = 0; i < this.tabs.length; i += 1) {
+            var tab = this.tabs[i];
+            if (current_tab === tab) {
+                tab.setAttribute('aria-selected', 'true');
+                tab.removeAttribute('tabindex');
+                this.tab_panels[i].setAttribute('aria-hidden', 'false');
+                if (set_focus) {
+                    tab.focus();
+                }
+            } else {
+                tab.setAttribute('aria-selected', 'false');
+                tab.tabIndex = -1;
+                this.tab_panels[i].setAttribute('aria-hidden', 'true');
+            }
         }
-        item.toggle(!item.open);
-      });
     }
-  }
+
+    private set_to_previous_tab(current_tab: HTMLElement): void {
+        let index: number;
+
+        if (current_tab === this.first_tab) {
+            this.set_tab(this.last_tab);
+        } else {
+            index = this.tabs.indexOf(current_tab);
+            this.set_tab(this.tabs[index - 1]);
+        }
+    }
+
+    private set_to_next_tab(current_tab: HTMLElement): void {
+        let index: number;
+
+        if (current_tab === this.last_tab) {
+            this.set_tab(this.first_tab);
+        } else {
+            index = this.tabs.indexOf(current_tab);
+            this.set_tab(this.tabs[index + 1]);
+        }
+    }
+
+    /* Events */
+
+    private keydown(event): void {
+        const target = event.currentTarget;
+        let flag = false;
+
+        switch (event.key) {
+            case 'ArrowLeft':
+                this.set_to_previous_tab(target);
+            flag = true;
+            break;
+
+            case 'ArrowRight':
+                this.set_to_next_tab(target);
+            flag = true;
+            break;
+
+            case 'Home':
+                this.set_tab(this.first_tab);
+            flag = true;
+            break;
+
+            case 'End':
+                this.set_tab(this.last_tab);
+            flag = true;
+            break;
+
+            default:
+                break;
+        }
+
+        if (flag) {
+            event.stopPropagation();
+            event.preventDefault();
+        }
+    }
+
+    private click(event): void {
+        this.set_tab(event.currentTarget);
+    }
+
 }
 

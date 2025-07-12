@@ -1,6 +1,6 @@
 -----
 
-# DG\_Accordion
+# DG\_Tabs
 
 A lightweight and straightforward JavaScript plugin for creating accessible accordions.
 

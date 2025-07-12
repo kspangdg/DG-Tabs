@@ -59,7 +59,10 @@
     window.addEventListener('load', function () {
         const tabs = document.querySelector('[data-dgtabs]');
         if (tabs) {
-            new DG_Tabs(tabs);
+            new DG_Tabs({
+                el: tabs,
+                virtical: true
+            });
         }
     });
 </script>

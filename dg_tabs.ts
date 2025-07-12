@@ -5,6 +5,11 @@
  * @version 1.0.0
  */
 
+interface TabOptions {
+  el: HTMLElement | null;
+  virtical?: boolean;
+}
+
 class DG_Tabs {
 
     private tab_list: HTMLElement;
@@ -12,13 +17,22 @@ class DG_Tabs {
     private firstTab: HTMLElement;
     private lastTab: HTMLElement;
     private tab_panels: HTMLElement[];
+    private defaults: AccordionOptions = {
+        el: null,
+        virtical: false,
+    }
+    private options: TabOptions;
 
-    constructor(tab_list: HTMLElement) {
-        this.tab_list = tab_list;
+    constructor(args: TabOptions) {
+        this.options = { ...this.defaults, ...args };
+        if (!this.options.el) {
+            console.error("DG_Tags: 'el' option is required and must be an HTMLElement.");
+            return;
+        }
         this.tabs = [];
         this.first_tab = null;
         this.last_tab = null;
-        this.tabs = Array.from(this.tab_list.querySelectorAll('[role=tab]'));
+        this.tabs = Array.from(this.options.el.querySelectorAll('[role=tab]'));
         this.tab_panels = [];
 
         for (var i = 0; i < this.tabs.length; i += 1) {
@@ -89,13 +103,31 @@ class DG_Tabs {
 
         switch (event.key) {
             case 'ArrowLeft':
-                this.set_to_previous_tab(target);
-            flag = true;
+                if (!this.options.virtical) {
+                    this.set_to_previous_tab(target);
+                    flag = true;
+                }
             break;
 
             case 'ArrowRight':
-                this.set_to_next_tab(target);
-            flag = true;
+                if (!this.options.virtical) {
+                    this.set_to_next_tab(target);
+                    flag = true;
+                }
+            break;
+
+            case 'ArrowUp':
+                if (this.options.virtical) {
+                    this.set_to_previous_tab(target);
+                    flag = true;
+                }
+            break;
+
+            case 'ArrowDown':
+                if (this.options.virtical) {
+                    this.set_to_next_tab(target);
+                    flag = true;
+                }
             break;
 
             case 'Home':
